@@ -27,14 +27,35 @@ func main() {
 		fmt.Println(err)
 	}
 
-	fmt.Printf("File: %dB\n", len(blobBytes))
+	parse(blob, 0)
+}
+
+func parse(blob map[string]interface{}, currentDepth int) error {
 	for key, element := range blob {
 		elementBytes, err := json.Marshal(element)
 		if err != nil {
-			fmt.Println(err)
+			return err
+		}
+
+		for range currentDepth {
+			fmt.Printf("  ")
 		}
 
 		fmt.Printf("- %s: %dB\n", key, len(elementBytes))
+
+		parseInterface(element, currentDepth)
 	}
 
+	return nil
+}
+
+func parseInterface(blob interface{}, currentDepth int) {
+	switch typedBlob := blob.(type) {
+	case []interface{}:
+		for _, arrayBlob := range typedBlob {
+			parseInterface(arrayBlob, currentDepth)
+		}
+	case map[string]interface{}:
+		parse(typedBlob, currentDepth+1)
+	}
 }
