@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -31,31 +32,47 @@ func main() {
 		fmt.Println(err)
 	}
 
-	parseInterface(blob, "", *maxDepthPtr)
+	blobPathsToBytes := &map[string]int{}
+	parseInterface(blob, "", *maxDepthPtr, blobPathsToBytes)
+
+	pathsArray := []string{}
+	for path := range *blobPathsToBytes {
+		pathsArray = append(pathsArray, path)
+	}
+
+	slices.Sort(pathsArray)
+
+	for _, path := range pathsArray {
+		splitPath := strings.Split(path, "/")
+		for range len(splitPath) - 2 {
+			fmt.Printf("  ")
+		}
+		fmt.Printf("- %s: %s\n", splitPath[len(splitPath)-1], prettyByteSize((*blobPathsToBytes)[path]))
+	}
 }
 
-func parse(blob map[string]interface{}, path string, maxDepth int) error {
+func parse(blob map[string]interface{}, path string, maxDepth int, pathsToBytes *map[string]int) error {
 	for key, element := range blob {
-		newPath := fmt.Sprintf("%s/%s", path, key)
-
 		elementBytes, err := json.Marshal(element)
 		if err != nil {
 			return err
 		}
 
-		for range getDepthFromPath(newPath) - 1 {
-			fmt.Printf("  ")
+		newPath := fmt.Sprintf("%s/%s", path, key)
+		_, ok := (*pathsToBytes)[newPath]
+		if !ok {
+			(*pathsToBytes)[newPath] = len(elementBytes)
+		} else {
+			(*pathsToBytes)[newPath] += len(elementBytes)
 		}
 
-		fmt.Printf("- %s: %s\n", newPath, prettyByteSize(len(elementBytes)))
-
-		parseInterface(element, newPath, maxDepth)
+		parseInterface(element, newPath, maxDepth, pathsToBytes)
 	}
 
 	return nil
 }
 
-func parseInterface(blob interface{}, path string, maxDepth int) {
+func parseInterface(blob interface{}, path string, maxDepth int, pathsToBytes *map[string]int) {
 	if getDepthFromPath(path) >= maxDepth {
 		return
 	}
@@ -63,10 +80,10 @@ func parseInterface(blob interface{}, path string, maxDepth int) {
 	switch typedBlob := blob.(type) {
 	case []interface{}:
 		for _, arrayBlob := range typedBlob {
-			parseInterface(arrayBlob, path, maxDepth)
+			parseInterface(arrayBlob, path, maxDepth, pathsToBytes)
 		}
 	case map[string]interface{}:
-		parse(typedBlob, path, maxDepth)
+		parse(typedBlob, path, maxDepth, pathsToBytes)
 	}
 }
 
