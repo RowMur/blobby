@@ -24,7 +24,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	var blob map[string]interface{}
+	var blob interface{}
 	err = json.Unmarshal(blobBytes, &blob)
 	if err != nil {
 		fmt.Println(err)
