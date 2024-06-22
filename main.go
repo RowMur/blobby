@@ -9,6 +9,8 @@ import (
 
 func main() {
 	filenamePtr := flag.String("f", "", "the file to parse")
+	maxDepthPtr := flag.Int("d", 3, "the maximum depth to parse to")
+
 	flag.Parse()
 
 	filename := *filenamePtr
@@ -27,35 +29,39 @@ func main() {
 		fmt.Println(err)
 	}
 
-	parse(blob, 0)
+	parseInterface(blob, 0, *maxDepthPtr)
 }
 
-func parse(blob map[string]interface{}, currentDepth int) error {
+func parse(blob map[string]interface{}, currentDepth int, maxDepth int) error {
 	for key, element := range blob {
 		elementBytes, err := json.Marshal(element)
 		if err != nil {
 			return err
 		}
 
-		for range currentDepth {
+		for range currentDepth - 1 {
 			fmt.Printf("  ")
 		}
 
 		fmt.Printf("- %s: %dB\n", key, len(elementBytes))
 
-		parseInterface(element, currentDepth)
+		parseInterface(element, currentDepth, maxDepth)
 	}
 
 	return nil
 }
 
-func parseInterface(blob interface{}, currentDepth int) {
+func parseInterface(blob interface{}, currentDepth int, maxDepth int) {
+	if currentDepth >= maxDepth {
+		return
+	}
+
 	switch typedBlob := blob.(type) {
 	case []interface{}:
 		for _, arrayBlob := range typedBlob {
-			parseInterface(arrayBlob, currentDepth)
+			parseInterface(arrayBlob, currentDepth, maxDepth)
 		}
 	case map[string]interface{}:
-		parse(typedBlob, currentDepth+1)
+		parse(typedBlob, currentDepth+1, maxDepth)
 	}
 }
