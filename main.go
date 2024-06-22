@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -30,40 +31,42 @@ func main() {
 		fmt.Println(err)
 	}
 
-	parseInterface(blob, 0, *maxDepthPtr)
+	parseInterface(blob, "", *maxDepthPtr)
 }
 
-func parse(blob map[string]interface{}, currentDepth int, maxDepth int) error {
+func parse(blob map[string]interface{}, path string, maxDepth int) error {
 	for key, element := range blob {
+		newPath := fmt.Sprintf("%s/%s", path, key)
+
 		elementBytes, err := json.Marshal(element)
 		if err != nil {
 			return err
 		}
 
-		for range currentDepth - 1 {
+		for range getDepthFromPath(newPath) - 1 {
 			fmt.Printf("  ")
 		}
 
-		fmt.Printf("- %s: %s\n", key, prettyByteSize(len(elementBytes)))
+		fmt.Printf("- %s: %s\n", newPath, prettyByteSize(len(elementBytes)))
 
-		parseInterface(element, currentDepth, maxDepth)
+		parseInterface(element, newPath, maxDepth)
 	}
 
 	return nil
 }
 
-func parseInterface(blob interface{}, currentDepth int, maxDepth int) {
-	if currentDepth >= maxDepth {
+func parseInterface(blob interface{}, path string, maxDepth int) {
+	if getDepthFromPath(path) >= maxDepth {
 		return
 	}
 
 	switch typedBlob := blob.(type) {
 	case []interface{}:
 		for _, arrayBlob := range typedBlob {
-			parseInterface(arrayBlob, currentDepth, maxDepth)
+			parseInterface(arrayBlob, path, maxDepth)
 		}
 	case map[string]interface{}:
-		parse(typedBlob, currentDepth+1, maxDepth)
+		parse(typedBlob, path, maxDepth)
 	}
 }
 
@@ -76,4 +79,8 @@ func prettyByteSize(b int) string {
 		bf /= 1024.0
 	}
 	return fmt.Sprintf("%.1fTB", bf)
+}
+
+func getDepthFromPath(path string) int {
+	return len(strings.Split(path, "/")) - 1
 }
