@@ -2,13 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 )
 
-const filename = "blob.json"
-
 func main() {
+	filenamePtr := flag.String("f", "", "the file to parse")
+	flag.Parse()
+
+	filename := *filenamePtr
+	if filename == "" {
+		panic("Filename not set. Set it with the -f flag.")
+	}
+
 	blobBytes, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err)
