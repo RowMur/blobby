@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -43,7 +44,7 @@ func parse(blob map[string]interface{}, currentDepth int, maxDepth int) error {
 			fmt.Printf("  ")
 		}
 
-		fmt.Printf("- %s: %dB\n", key, len(elementBytes))
+		fmt.Printf("- %s: %s\n", key, prettyByteSize(len(elementBytes)))
 
 		parseInterface(element, currentDepth, maxDepth)
 	}
@@ -64,4 +65,15 @@ func parseInterface(blob interface{}, currentDepth int, maxDepth int) {
 	case map[string]interface{}:
 		parse(typedBlob, currentDepth+1, maxDepth)
 	}
+}
+
+func prettyByteSize(b int) string {
+	bf := float64(b)
+	for _, unit := range []string{"", "K", "M", "G"} {
+		if math.Abs(bf) < 1024.0 {
+			return fmt.Sprintf("%3.1f%sB", bf, unit)
+		}
+		bf /= 1024.0
+	}
+	return fmt.Sprintf("%.1fTB", bf)
 }
