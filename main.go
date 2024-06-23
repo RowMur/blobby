@@ -39,7 +39,6 @@ func main() {
 	for path := range *blobPathsToBytes {
 		pathsArray = append(pathsArray, path)
 	}
-
 	slices.Sort(pathsArray)
 
 	for _, path := range pathsArray {
