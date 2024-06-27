@@ -4,6 +4,14 @@ blobby is a JSON blob analyzer. It breaks down JSON by field so that you can vis
 
 Inspiration for this tool came from a ticket I worked on recently where we wanted to improve our FCP (first content paint) by reducing the size of the data we were fetching in NextJS' `GetServerSideProps`. I wanted to see which fields were the biggest contributors to a fairly chunky JSON blob and then (assuming it wasn't first paint critical for SEO reasons for example) would be left to fetch on the client later on.
 
+## Installation
+
+### Go
+
+```
+go install github.com/RowMur/blobby@latest
+```
+
 ## Development
 
 1. Install [Golang](https://go.dev/doc/install)
