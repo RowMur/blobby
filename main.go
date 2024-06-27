@@ -11,25 +11,44 @@ import (
 )
 
 func main() {
-	filenamePtr := flag.String("f", "", "the file to parse")
 	maxDepthPtr := flag.Int("d", 3, "the maximum depth to parse to")
-
 	flag.Parse()
 
-	filename := *filenamePtr
-	if filename == "" {
-		panic("Filename not set. Set it with the -f flag.")
+	var blobBytes []byte
+
+	isPiped, err := isPipedInput()
+	if err != nil {
+		panic(err)
 	}
 
-	blobBytes, err := os.ReadFile(filename)
-	if err != nil {
-		fmt.Println(err)
+	if isPiped {
+		_, err = fmt.Scanf("%s", &blobBytes)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		args := os.Args[1:]
+		if len(args) == 0 {
+			panic("Filename not set.")
+		}
+
+		filename := args[len(args)-1]
+		if filename == "" {
+			panic("Filename not set.")
+		}
+
+		fileBlob, err := os.ReadFile(filename)
+		if err != nil {
+			panic(err)
+		}
+
+		blobBytes = fileBlob
 	}
 
 	var blob interface{}
 	err = json.Unmarshal(blobBytes, &blob)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
 	blobPathsToBytes := &map[string]int{}
@@ -99,4 +118,13 @@ func prettyByteSize(b int) string {
 
 func getDepthFromPath(path string) int {
 	return len(strings.Split(path, "/")) - 1
+}
+
+func isPipedInput() (bool, error) {
+	fi, err := os.Stdin.Stat()
+	if err != nil {
+		return false, err
+	}
+
+	return (fi.Mode() & os.ModeCharDevice) == 0, nil
 }
