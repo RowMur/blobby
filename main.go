@@ -9,6 +9,8 @@ import (
 	"os"
 	"slices"
 	"strings"
+
+	"github.com/charmbracelet/lipgloss/tree"
 )
 
 func main() {
@@ -59,15 +61,44 @@ func main() {
 	for path := range *blobPathsToBytes {
 		pathsArray = append(pathsArray, path)
 	}
-	slices.Sort(pathsArray)
+	slices.SortFunc(pathsArray, func(a, b string) int {
+		aDepth := getDepthFromPath(a)
+		bDepth := getDepthFromPath(b)
+		depthDiff := aDepth - bDepth
 
-	for _, path := range pathsArray {
-		splitPath := strings.Split(path, "/")
-		for range len(splitPath) - 2 {
-			fmt.Printf("  ")
+		if depthDiff != 0 {
+			return -depthDiff
 		}
-		fmt.Printf("- %s: %s\n", splitPath[len(splitPath)-1], prettyByteSize((*blobPathsToBytes)[path]))
+
+		return -strings.Compare(a, b)
+	})
+
+	blobTrees := map[string]*tree.Tree{}
+	for _, path := range pathsArray {
+		pathNodes := strings.Split(path, "/")
+		pathEndNode := pathNodes[len(pathNodes)-1]
+		pathString := fmt.Sprintf("%s (%s)", pathEndNode, prettyByteSize((*blobPathsToBytes)[path]))
+
+		pathTree := tree.Root(pathString)
+		for previousTree := range blobTrees {
+			isAChild := strings.HasPrefix(previousTree, path)
+			isOnlyOneLevelDeeper := getDepthFromPath(previousTree) == getDepthFromPath(path)+1
+			if isAChild && isOnlyOneLevelDeeper {
+				pathTree.Child(blobTrees[previousTree])
+			}
+		}
+
+		blobTrees[path] = pathTree
 	}
+
+	blobTree := tree.Root("blob")
+	for path, tree := range blobTrees {
+		if getDepthFromPath(path) == 1 {
+			blobTree.Child(tree)
+		}
+	}
+
+	fmt.Println(blobTree)
 }
 
 func parse(blob map[string]interface{}, path string, maxDepth int, pathsToBytes *map[string]int) error {
