@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"slices"
@@ -22,7 +23,7 @@ func main() {
 	}
 
 	if isPiped {
-		_, err = fmt.Scanf("%s", &blobBytes)
+		blobBytes, err = io.ReadAll(os.Stdin)
 		if err != nil {
 			panic(err)
 		}
