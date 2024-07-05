@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 
@@ -135,29 +136,27 @@ func getItemStyleFunc(children []*Blob) tree.StyleFunc {
 }
 
 func getOutlierBounds(children []*Blob) (int, int) {
+	if len(children) == 0 {
+		return 0, 0
+	}
+
 	values := []float64{}
 	for _, child := range children {
 		values = append(values, float64(child.bytesCount))
 	}
 
+	slices.Sort(values)
+
 	nOfValues := float64(len(values))
-	sumOfValues := 0.0
-	for _, value := range values {
-		sumOfValues += value
-	}
+	q1Index := int(math.Max((math.Round(nOfValues/4))-1, 0))
+	q3Index := int(math.Min(math.Round(3*nOfValues/4)-1, float64(len(values)-1)))
 
-	mean := sumOfValues / nOfValues
+	q1 := values[q1Index]
+	q3 := values[q3Index]
+	iqr := q3 - q1
 
-	sumOfSquaresOfDiffToMean := 0.0
-	for _, value := range values {
-		sumOfSquaresOfDiffToMean += math.Pow(value-mean, 2)
-	}
+	lowerBound := q1 - (1.5 * iqr)
+	upperBound := q3 + (1.5 * iqr)
 
-	variance := sumOfSquaresOfDiffToMean / nOfValues
-	standardDeviation := math.Sqrt(variance)
-
-	lowerBound := int(mean - 3*standardDeviation)
-	upperBound := int(mean + 3*standardDeviation)
-
-	return lowerBound, upperBound
+	return int(lowerBound), int(upperBound)
 }
