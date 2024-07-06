@@ -103,6 +103,14 @@ Specify how deep to parse into the JSON.
 blobby -d 5 blob.json
 ```
 
+**Root (`-r`, default: "")**
+
+Specify a path down to the root of the blob that you want to parse. Takes a "." separated list of keys or indexes.
+
+```bash
+blobby -r sprites.versions blob.json
+```
+
 ## Installation
 
 ### Go
@@ -110,6 +118,10 @@ blobby -d 5 blob.json
 ```
 go install github.com/RowMur/blobby@master
 ```
+
+### Binaries
+
+On the [releases page](https://github.com/RowMur/blobby/releases), find the release that you want. There will be a list of assets for various OS's, install the appropriate asset for you.
 
 ## Development
 

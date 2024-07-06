@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -17,6 +19,7 @@ func main() {
 	}
 
 	maxDepthPtr := flag.Int("d", 3, "the maximum depth to parse to")
+	rootPtr := flag.String("r", "", "root of the blob to analyse. '.' seperated keys")
 	flag.Parse()
 
 	cfg := Config{
@@ -31,7 +34,37 @@ func main() {
 		panic(err)
 	}
 
-	blob := newBlob(cfg, "blob", jsonBlob)
+	rootBlob := jsonBlob
+	rootPath := strings.Split(*rootPtr, ".")
+	for _, key := range rootPath {
+		if key == "" {
+			continue
+		}
+
+		switch typedBlob := rootBlob.(type) {
+		case []interface{}:
+			index, err := strconv.Atoi(key)
+			if err != nil {
+				panic(fmt.Sprintf("invalid path at key: %s. Expecting an index to an array", key))
+			}
+
+			if index < 0 || index >= len(typedBlob) {
+				panic(fmt.Sprintf("invalid index at key: %s. Index out of range for array", key))
+			}
+
+			rootBlob = typedBlob[index]
+		case map[string]interface{}:
+			childBlob, ok := typedBlob[key]
+			if !ok {
+				panic(fmt.Sprintf("invalid key: %s", key))
+
+			}
+
+			rootBlob = childBlob
+		}
+	}
+
+	blob := newBlob(cfg, "blob", rootBlob)
 
 	blobTree := blob.getTree()
 	fmt.Println(blobTree)

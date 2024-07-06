@@ -20,4 +20,5 @@ func help() {
 	fmt.Println(titleStyle.Render("Options:"))
 	fmt.Println()
 	fmt.Println("  -d, the maximum depth to parse to (default 3)")
+	fmt.Println("  -r, root of the blob to analyse. '.' seperated keys e.g. 'sprites.versions'")
 }
