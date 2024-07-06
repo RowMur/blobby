@@ -52,8 +52,9 @@ brews:
       email: bot@goreleaser.com
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
     directory: Formula
-    description: "A JSON blob analyser, breaking down by field to visualise blob makeup."
+    description: "JSON blob analyser, breaking down by field to visualise blob makeup"
     repository:
       owner: RowMur
       name: homebrew-tap
       branch: main
+    homepage: "https://github.com/RowMur/blobby"
