@@ -115,8 +115,21 @@ blobby -r sprites.versions blob.json
 
 ### Go
 
-```
+```bash
 go install github.com/RowMur/blobby@master
+```
+
+### Homebrew
+
+To get an app in the core Homebrew formulae, you have to pass some set of requirements. So, I've made [my own tap](https://github.com/RowMur/homebrew-tap).
+
+```bash
+brew install rowmur/homebrew-tap/blobby
+
+# or
+
+brew tap rowmur/homebrew-tap && brew install blobby
+
 ```
 
 ### Binaries
