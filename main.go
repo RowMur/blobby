@@ -9,6 +9,13 @@ import (
 )
 
 func main() {
+	for _, arg := range os.Args {
+		if arg == "--help" || arg == "-h" {
+			help()
+			return
+		}
+	}
+
 	maxDepthPtr := flag.Int("d", 3, "the maximum depth to parse to")
 	flag.Parse()
 
